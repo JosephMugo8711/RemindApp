@@ -1,36 +1,34 @@
+import CollectionCard from "@/components/CollectionCard";
+import CreateCollectionBtn from "@/components/CreateCollectionBtn";
+import SadFace from "@/components/icons/SadFace";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { wait } from "@/lib/wait";
+import { prisma } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs";
 import { Suspense } from "react";
 
-// Define the Home component as an async function
 export default async function Home() {
   return (
     <>
-      {/* Suspense component to handle loading state */}
       <Suspense fallback={<WelcomeMsgFallback />}>
-         {/* Render the WelcomeMsg component */}
-         <WelcomeMsg />
+        <WelcomMsg />
+      </Suspense>
+      <Suspense fallback={<div>Loading collections...</div>}>
+        <CollectionList />
       </Suspense>
     </>
-  )
+  );
 }
 
-// Define the WelcomeMsg component as an async function
-async function WelcomeMsg() {
-  // Fetch current user data
+async function WelcomMsg() {
   const user = await currentUser();
-  //await wait(3000); // Optional delay
 
-  // Check if user data is available
   if (!user) {
-    // Render error message if user data is not available
     return <div>error</div>;
   }
 
-  // Render welcome message with user's first and last name
   return (
-    <div className="flex w-full">
+    <div className="flex w-full mb-12">
       <h1 className="text-4xl font-bold">
         Welcome, <br /> {user.firstName} {user.lastName}
       </h1>
@@ -38,15 +36,52 @@ async function WelcomeMsg() {
   );
 }
 
-// Define the WelcomeMsgFallback component
 function WelcomeMsgFallback() {
-  // Render loading skeleton while waiting for data
   return (
-    <div className="flex w-full">
+    <div className="flex w-full mb-12">
       <h1 className="text-4xl font-bold">
-        <Skeleton className="w-[150px] h-[36px]" />
+        <Skeleton className="w-[180px] h-[36px]" />
         <Skeleton className="w-[150px] h-[36px]" />
       </h1>
     </div>
+  );
+}
+
+async function CollectionList() {
+  const user = await currentUser();
+  const collections = await prisma.collection.findMany({
+    include: {
+      tasks: true, // Remove `$scalars: true` here
+    },
+    where: {
+      userId: user?.id,
+    },
+  });
+  
+
+  if (collections.length === 0) {
+    return (
+      <div className="flex flex-col gap-5">
+        <Alert>
+          <SadFace />
+          <AlertTitle>There are no collections yet!</AlertTitle>
+          <AlertDescription>
+            Create a collection to get started
+          </AlertDescription>
+        </Alert>
+        <CreateCollectionBtn />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <CreateCollectionBtn />
+      <div className="flex flex-col gap-4 mt-6">
+        {collections.map((collection) => (
+          <CollectionCard key={collection.id} collection={collection} />
+        ))}
+      </div>
+    </>
   );
 }
