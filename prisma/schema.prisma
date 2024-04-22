@@ -1,35 +1,40 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Define the Prisma schema for the database
 
+// Define the generator configuration for the Prisma client
 generator client {
   provider = "prisma-client-js"
 }
 
+// Define the datasource configuration for the SQLite database
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL") // Use the DATABASE_URL environment variable for the database connection
 }
 
+// Define the Collection model
 model Collection {
-  id        Int      @id @default(autoincrement())
-  name      String
-  userId    String
-  color     String
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement()) // Unique identifier for the collection, auto-incremented
+  name      String    // Name of the collection
+  userId    String    // User ID associated with the collection
+  color     String    // Color associated with the collection
+  createdAt DateTime  @default(now()) // Timestamp indicating when the collection was created
 
-  tasks Task[]
+  tasks Task[]  // One-to-many relationship with Task model, representing tasks in the collection
 
-  @@unique([name, userId])
+  @@unique([name, userId]) // Ensure uniqueness of name and userId combination
 }
 
+// Define the Task model
 model Task {
-  id        Int       @id @default(autoincrement())
-  content   String
-  userId    String
-  done      Boolean   @default(false)
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
+  id          Int       @id @default(autoincrement()) // Unique identifier for the task, auto-incremented
+  content     String    // Content of the task
+  userId      String    // User ID associated with the task
+  done        Boolean   @default(false) // Indicates whether the task is done or not, default to false
+  expiresAt   DateTime? // Optional expiration date for the task
+  createdAt   DateTime  @default(now()) // Timestamp indicating when the task was created
 
-  collectionId Int
-  Collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId Int       // Foreign key to the Collection model
+  Collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade) // Define the relationship with Collection model
 }

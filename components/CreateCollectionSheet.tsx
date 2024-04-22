@@ -1,17 +1,19 @@
-import React from "react";
+"use client"
+
+import React from "react"; 
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "./ui/sheet";
-import { useForm } from "react-hook-form";
+} from "./ui/sheet"; // Import components from the sheet module
+import { useForm } from "react-hook-form"; // Import useForm hook from react-hook-form
 import {
   createCollectionSchema,
   createCollectionSchemaType,
-} from "@/schema/createCollection";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from "@/schema/createCollection"; // Import schema and type for creating a collection
+import { zodResolver } from "@hookform/resolvers/zod"; // Import zodResolver from hook form resolvers
 import {
   Form,
   FormControl,
@@ -20,51 +22,56 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
+} from "./ui/form"; // Import components for form handling
+import { Input } from "./ui/input"; // Import Input component
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { CollectionColor, CollectionColors } from "@/lib/constants";
-import { cn } from "@/lib/utils";
-import { Separator } from "./ui/separator";
-import { Button } from "./ui/button";
-import { createCollection } from "@/actions/collection";
-import { toast } from "./ui/use-toast";
-import { ReloadIcon } from "@radix-ui/react-icons";
-import { useRouter } from "next/navigation";
+} from "./ui/select"; // Import components for select input
+import { CollectionColor, CollectionColors } from "@/lib/constants"; // Import CollectionColor enum and CollectionColors object
+import { cn } from "@/lib/utils"; // Import cn utility function
+import { Separator } from "./ui/separator"; // Import Separator component
+import { Button } from "./ui/button"; // Import Button component
+import { createCollection } from "@/actions/collection"; // Import createCollection action
+import { toast } from "./ui/use-toast"; // Import toast function
+import { ReloadIcon } from "@radix-ui/react-icons"; // Import ReloadIcon component
+import { useRouter } from "next/navigation"; // Import useRouter hook from Next.js
 
+// Define Props interface for CreateCollectionSheet component
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+// CreateCollectionSheet component definition
 function CreateCollectionSheet({ open, onOpenChange }: Props) {
+  // Initialize form using useForm hook from react-hook-form
   const form = useForm<createCollectionSchemaType>({
     resolver: zodResolver(createCollectionSchema),
     defaultValues: {},
   });
 
-  const router = useRouter();
+  const router = useRouter(); // useRouter hook to handle navigation
 
+  // Function to handle form submission
   const onSubmit = async (data: createCollectionSchemaType) => {
     try {
-      await createCollection(data);
+      await createCollection(data); // Call createCollection action with form data
 
       // Close the sheet
       openChangeWrapper(false);
-      router.refresh();
+      router.refresh(); // Refresh the page after creating the collection
 
+      // Show success toast
       toast({
         title: "Success",
         description: "Collection created successfully!",
       });
     } catch (e: any) {
-      // Show toast
+      // Show error toast if there's an error during collection creation
       toast({
         title: "Error",
         description: "Something went wrong. Please try again later",
@@ -74,25 +81,30 @@ function CreateCollectionSheet({ open, onOpenChange }: Props) {
     }
   };
 
+  // Wrapper function to handle open state change and reset form
   const openChangeWrapper = (open: boolean) => {
-    form.reset();
-    onOpenChange(open);
+    form.reset(); // Reset form fields
+    onOpenChange(open); // Call onOpenChange function with the new open state
   };
 
+  // Render the CreateCollectionSheet component
   return (
     <Sheet open={open} onOpenChange={openChangeWrapper}>
       <SheetContent>
+        {/* SheetHeader with title and description */}
         <SheetHeader>
           <SheetTitle>Add new collection</SheetTitle>
           <SheetDescription>
             Collections are a way to group your tasks
           </SheetDescription>
         </SheetHeader>
+        {/* Form component for collecting collection data */}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 flex flex-col"
           >
+            {/* FormField for collection name */}
             <FormField
               control={form.control}
               name="name"
@@ -108,6 +120,7 @@ function CreateCollectionSheet({ open, onOpenChange }: Props) {
               )}
             />
 
+            {/* FormField for selecting collection color */}
             <FormField
               control={form.control}
               name="color"
@@ -116,6 +129,7 @@ function CreateCollectionSheet({ open, onOpenChange }: Props) {
                   <FormLabel>Color</FormLabel>
                   <FormControl>
                     <Select onValueChange={(color) => field.onChange(color)}>
+                      {/* SelectTrigger for displaying selected color */}
                       <SelectTrigger
                         className={cn(
                           "w-full h-8 text-white",
@@ -127,6 +141,7 @@ function CreateCollectionSheet({ open, onOpenChange }: Props) {
                           className="w-full h-8"
                         />
                       </SelectTrigger>
+                      {/* SelectContent for displaying color options */}
                       <SelectContent className="w-full">
                         {Object.keys(CollectionColors).map((color) => (
                           <SelectItem
@@ -152,8 +167,10 @@ function CreateCollectionSheet({ open, onOpenChange }: Props) {
             />
           </form>
         </Form>
+        {/* Separator component */}
         <div className="flex flex-col gap-3 mt-4">
           <Separator />
+          {/* Button to confirm collection creation */}
           <Button
             disabled={form.formState.isSubmitting}
             variant={"outline"}
@@ -164,6 +181,7 @@ function CreateCollectionSheet({ open, onOpenChange }: Props) {
             onClick={form.handleSubmit(onSubmit)}
           >
             Confirm
+            {/* Show loading icon while submitting form */}
             {form.formState.isSubmitting && (
               <ReloadIcon className="ml-2 h-4 w-4 animate-spin" />
             )}
@@ -173,5 +191,6 @@ function CreateCollectionSheet({ open, onOpenChange }: Props) {
     </Sheet>
   );
 }
+
 
 export default CreateCollectionSheet;

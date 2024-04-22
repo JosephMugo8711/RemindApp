@@ -29,30 +29,31 @@ import { useRouter } from "next/navigation";
 import CreateTaskDialog from "./CreateTaskDialog";
 import TaskCard from "./TaskCard";
 
+// Define props interface for CollectionCard component
 interface Props {
   collection: Collection & {
     tasks: Task[];
   };
 }
 
+// CollectionCard component definition
 function CollectionCard({ collection }: Props) {
-  const [isOpen, setIsOpen] = useState(true);
-  const router = useRouter();
+  // State and hooks initialization
+  const [isOpen, setIsOpen] = useState(true); // State for collapsible open/close
+  const router = useRouter(); // useRouter hook to handle navigation
+  const [showCreateModal, setShowCreateModal] = useState(false); // State to control visibility of CreateTaskDialog
+  const tasks = collection.tasks; // Retrieve tasks from collection
+  const [isLoading, startTransition] = useTransition(); // State and hook for transitions
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-
-  const tasks = collection.tasks;
-
-  const [isLoading, startTransition] = useTransition();
-
+  // Function to remove a collection
   const removeCollection = async () => {
     try {
-      await deleteCollection(collection.id);
+      await deleteCollection(collection.id); // Call deleteCollection action
       toast({
         title: "Success",
         description: "Collection deleted successfully",
       });
-      router.refresh();
+      router.refresh(); // Refresh the page after deleting the collection
     } catch (e) {
       toast({
         title: "Error",
@@ -62,24 +63,32 @@ function CollectionCard({ collection }: Props) {
     }
   };
 
+  // Calculate number of tasks done
   const tasksDone = useMemo(() => {
     return collection.tasks.filter((task) => task.done).length;
   }, [collection.tasks]);
 
+  // Calculate total number of tasks
   const totalTasks = collection.tasks.length;
 
+  // Calculate progress percentage
   const progress = totalTasks === 0 ? 0 : (tasksDone / totalTasks) * 100;
 
+  // Render CollectionCard component
   return (
     <>
+      {/* CreateTaskDialog component */}
       <CreateTaskDialog
         open={showCreateModal}
         setOpen={setShowCreateModal}
         collection={collection}
       />
 
+      {/* Collapsible component */}
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        {/* CollapsibleTrigger component */}
         <CollapsibleTrigger asChild>
+          {/* Button component */}
           <Button
             variant={"ghost"}
             className={cn(
@@ -93,7 +102,9 @@ function CollectionCard({ collection }: Props) {
             {isOpen && <CaretUpIcon className="h-6 w-6" />}
           </Button>
         </CollapsibleTrigger>
+        {/* CollapsibleContent component */}
         <CollapsibleContent className="flex rounded-b-md flex-col dark:bg-neutral-900 shadow-lg">
+          {/* Render content based on tasks */}
           {tasks.length === 0 && (
             <Button
               variant={"ghost"}
@@ -101,6 +112,7 @@ function CollectionCard({ collection }: Props) {
               onClick={() => setShowCreateModal(true)}
             >
               <p>There are no tasks yet:</p>
+              {/* Display Create Task button */}
               <span
                 className={cn(
                   "text-sm bg-clip-text text-transparent",
@@ -113,7 +125,9 @@ function CollectionCard({ collection }: Props) {
           )}
           {tasks.length > 0 && (
             <>
+              {/* Render progress bar */}
               <Progress className="rounded-none" value={progress} />
+              {/* Render task cards */}
               <div className="p-4 gap-3 flex flex-col">
                 {tasks.map((task) => (
                   <TaskCard key={task.id} task={task} />
@@ -121,12 +135,17 @@ function CollectionCard({ collection }: Props) {
               </div>
             </>
           )}
+          {/* Separator component */}
           <Separator />
+          {/* Footer */}
           <footer className="h-[40px] px-4 p-[2px] text-xs text-neutral-500 flex justify-between items-center ">
+            {/* Display creation date of the collection */}
             <p>Created at {collection.createdAt.toLocaleDateString("en-US")}</p>
+            {/* Show loading indicator while deleting */}
             {isLoading && <div>Deleting...</div>}
             {!isLoading && (
               <div>
+                {/* Button to open CreateTaskDialog */}
                 <Button
                   size={"icon"}
                   variant={"ghost"}
@@ -134,6 +153,7 @@ function CollectionCard({ collection }: Props) {
                 >
                   <PlusIcon />
                 </Button>
+                {/* AlertDialog component for confirmation */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size={"icon"} variant={"ghost"}>
